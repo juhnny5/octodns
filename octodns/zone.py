@@ -26,7 +26,7 @@ class Zone(object):
     log = getLogger('Zone')
 
     def __init__(self, name, sub_zones):
-        if not name[-1] == '.':
+        if name[-1] != '.':
             raise Exception(f'Invalid zone name {name}, missing ending dot')
         # internally everything is idna
         self.name = idna_encode(str(name)) if name else name
@@ -55,13 +55,11 @@ class Zone(object):
     def records(self):
         if self._origin:
             return self._origin.records
-        return set([r for _, node in self._records.items() for r in node])
+        return {r for _, node in self._records.items() for r in node}
 
     @property
     def root_ns(self):
-        if self._origin:
-            return self._origin.root_ns
-        return self._root_ns
+        return self._origin.root_ns if self._origin else self._root_ns
 
     def hostname_from_fqdn(self, fqdn):
         try:
@@ -81,7 +79,7 @@ class Zone(object):
         if not lenient:
             if name in self.sub_zones:
                 # It's an exact match for a sub-zone
-                if not record._type == 'NS':
+                if record._type != 'NS':
                     # and not a NS record, this should be in the sub
                     raise SubzoneRecordException(
                         f'Record {record.fqdn} is a managed sub-zone and not of type NS'
@@ -198,8 +196,7 @@ class Zone(object):
                 )
                 changes.append(Delete(record))
             else:
-                change = record.changes(desired_record, target)
-                if change:
+                if change := record.changes(desired_record, target):
                     self.log.debug(
                         'changes: zone=%s, modified\n'
                         '    existing=%s,\n     desired=%s',

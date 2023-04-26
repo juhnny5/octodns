@@ -42,10 +42,7 @@ def idna_decode(name):
     if any(p.startswith('xn--') for p in pieces):
         try:
             # it's idna
-            if name.startswith('*'):
-                # idna.decode doesn't like the *
-                return f'*.{_decode(name[2:])}'
-            return _decode(name)
+            return f'*.{_decode(name[2:])}' if name.startswith('*') else _decode(name)
         except _IDNAError as e:
             raise IdnaError(e)
     # not idna, just return as-is
@@ -56,7 +53,7 @@ class IdnaDict(MutableMapping):
     '''A dict type that is insensitive to case and utf-8/idna encoded strings'''
 
     def __init__(self, data=None):
-        self._data = dict()
+        self._data = {}
         if data is not None:
             self.update(data)
 

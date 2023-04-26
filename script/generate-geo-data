@@ -36,14 +36,6 @@ for country in countries:
             continent_code = continent_backups[country.alpha_2]
         except KeyError:
             raise
-            print(
-                '{} {} {}'.format(
-                    country.alpha_2,
-                    country.name,
-                    getattr(country, 'official_name', ''),
-                )
-            )
-
     geos[continent_code][country.alpha_2] = {'name': country.name}
 
     try:

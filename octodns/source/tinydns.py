@@ -27,11 +27,8 @@ class TinyDnsBaseSource(BaseSource):
         self.default_ttl = default_ttl
 
     def _data_for_A(self, _type, records):
-        values = []
-        for record in records:
-            if record[0] != '0.0.0.0':
-                values.append(record[0])
-        if len(values) == 0:
+        values = [record[0] for record in records if record[0] != '0.0.0.0']
+        if not values:
             return
         try:
             ttl = records[0][1]
@@ -40,12 +37,7 @@ class TinyDnsBaseSource(BaseSource):
         return {'ttl': ttl, 'type': _type, 'values': values}
 
     def _data_for_AAAA(self, _type, records):
-        values = []
-        for record in records:
-            # TinyDNS files have the ipv6 address written in full, but with the
-            # colons removed. This inserts a colon every 4th character to make
-            # the address correct.
-            values.append(u":".join(textwrap.wrap(record[0], 4)))
+        values = [u":".join(textwrap.wrap(record[0], 4)) for record in records]
         try:
             ttl = records[0][1]
         except IndexError:
@@ -158,8 +150,7 @@ class TinyDnsBaseSource(BaseSource):
         for name, types in data.items():
             for _type, d in types.items():
                 data_for = getattr(self, f'_data_for_{_type}')
-                data = data_for(_type, d)
-                if data:
+                if data := data_for(_type, d):
                     record = Record.new(
                         zone, name, data, source=self, lenient=lenient
                     )
@@ -200,7 +191,7 @@ class TinyDnsBaseSource(BaseSource):
                 except IndexError:
                     ttl = self.default_ttl
 
-                name = match.group('name')
+                name = match['name']
                 record = Record.new(
                     zone,
                     name,

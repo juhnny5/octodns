@@ -44,7 +44,7 @@ class TestTypeAllowListFilter(TestCase):
         got = filter_txt.process_target_zone(zone.copy())
         self.assertEqual(['txt', 'txt2'], sorted([r.name for r in got.records]))
 
-        filter_a_aaaa = TypeAllowlistFilter('only-aaaa', set(('A', 'AAAA')))
+        filter_a_aaaa = TypeAllowlistFilter('only-aaaa', {'A', 'AAAA'})
         got = filter_a_aaaa.process_target_zone(zone.copy())
         self.assertEqual(
             ['a', 'a2', 'aaaa'], sorted([r.name for r in got.records])
@@ -72,7 +72,7 @@ class TestTypeRejectListFilter(TestCase):
             ['a', 'a2', 'aaaa'], sorted([r.name for r in got.records])
         )
 
-        filter_a_aaaa = TypeRejectlistFilter('not-a-aaaa', set(('A', 'AAAA')))
+        filter_a_aaaa = TypeRejectlistFilter('not-a-aaaa', {'A', 'AAAA'})
         got = filter_a_aaaa.process_target_zone(zone.copy())
         self.assertEqual(['txt', 'txt2'], sorted([r.name for r in got.records]))
 

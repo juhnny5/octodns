@@ -22,10 +22,7 @@ class _ChunkedValuesMixin(ValuesMixin):
 
     @property
     def chunked_values(self):
-        values = []
-        for v in self.values:
-            values.append(self.chunked_value(v))
-        return values
+        return [self.chunked_value(v) for v in self.values]
 
 
 class _ChunkedValue(str):
@@ -44,11 +41,11 @@ class _ChunkedValue(str):
             return ['missing value(s)']
         elif not isinstance(data, (list, tuple)):
             data = (data,)
-        reasons = []
-        for value in data:
-            if cls._unescaped_semicolon_re.search(value):
-                reasons.append(f'unescaped ; in "{value}"')
-        return reasons
+        return [
+            f'unescaped ; in "{value}"'
+            for value in data
+            if cls._unescaped_semicolon_re.search(value)
+        ]
 
     @classmethod
     def process(cls, values):

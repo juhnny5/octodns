@@ -101,8 +101,11 @@ class TestBaseProvider(TestCase):
             'Abstract base class, SUPPORTS property missing', str(ctx.exception)
         )
 
+
+
         class HasSupports(HasSupportsGeo):
-            SUPPORTS = set(('A',))
+            SUPPORTS = {'A'}
+
 
         with self.assertRaises(NotImplementedError) as ctx:
             HasSupports('hassupports').populate(zone)
@@ -113,7 +116,6 @@ class TestBaseProvider(TestCase):
         # SUPPORTS_DYNAMIC has a default/fallback
         self.assertFalse(HasSupports('hassupports').SUPPORTS_DYNAMIC)
 
-        # But can be overridden
         class HasSupportsDyanmic(HasSupports):
             SUPPORTS_DYNAMIC = True
 
@@ -301,9 +303,12 @@ class TestBaseProvider(TestCase):
         self.assertFalse(plan)
 
     def test_plan_order_of_operations(self):
+
+
+
         class MockProvider(BaseProvider):
             log = getLogger('mock-provider')
-            SUPPORTS = set(('A',))
+            SUPPORTS = {'A'}
             SUPPORTS_GEO = False
 
             def __init__(self):
@@ -320,6 +325,7 @@ class TestBaseProvider(TestCase):
             def _process_existing_zone(self, *args, **kwargs):
                 self.calls.append('_process_existing_zone')
                 return super()._process_existing_zone(*args, **kwargs)
+
 
         provider = MockProvider()
 
@@ -444,9 +450,7 @@ class TestBaseProvider(TestCase):
         record = Record.new(
             zone, 'a', {'ttl': 30, 'type': 'A', 'value': '1.2.3.4'}
         )
-        Plan(
-            zone, zone, [Create(record) for i in range(10)], True
-        ).raise_if_unsafe()
+        Plan(zone, zone, [Create(record) for _ in range(10)], True).raise_if_unsafe()
 
     def test_safe_min_existing_creates(self):
         # Creates are safe when existing records is over MIN_EXISTING_RECORDS
@@ -463,9 +467,7 @@ class TestBaseProvider(TestCase):
                 )
             )
 
-        Plan(
-            zone, zone, [Create(record) for i in range(10)], True
-        ).raise_if_unsafe()
+        Plan(zone, zone, [Create(record) for _ in range(10)], True).raise_if_unsafe()
 
     def test_safe_no_existing(self):
         # existing records fewer than MIN_EXISTING_RECORDS is safe
@@ -494,7 +496,7 @@ class TestBaseProvider(TestCase):
 
         changes = [
             Update(record, record)
-            for i in range(
+            for _ in range(
                 int(Plan.MIN_EXISTING_RECORDS * Plan.MAX_SAFE_UPDATE_PCENT) + 1
             )
         ]
@@ -520,7 +522,7 @@ class TestBaseProvider(TestCase):
             )
         changes = [
             Update(record, record)
-            for i in range(
+            for _ in range(
                 int(Plan.MIN_EXISTING_RECORDS * Plan.MAX_SAFE_UPDATE_PCENT)
             )
         ]
@@ -544,7 +546,7 @@ class TestBaseProvider(TestCase):
 
         changes = [
             Delete(record)
-            for i in range(
+            for _ in range(
                 int(Plan.MIN_EXISTING_RECORDS * Plan.MAX_SAFE_DELETE_PCENT) + 1
             )
         ]
@@ -570,7 +572,7 @@ class TestBaseProvider(TestCase):
             )
         changes = [
             Delete(record)
-            for i in range(
+            for _ in range(
                 int(Plan.MIN_EXISTING_RECORDS * Plan.MAX_SAFE_DELETE_PCENT)
             )
         ]
@@ -595,7 +597,7 @@ class TestBaseProvider(TestCase):
 
         changes = [
             Update(record, record)
-            for i in range(int(Plan.MIN_EXISTING_RECORDS * safe_pcent) + 1)
+            for _ in range(int(Plan.MIN_EXISTING_RECORDS * safe_pcent) + 1)
         ]
 
         with self.assertRaises(UnsafePlan) as ctx:
@@ -623,7 +625,7 @@ class TestBaseProvider(TestCase):
 
         changes = [
             Delete(record)
-            for i in range(int(Plan.MIN_EXISTING_RECORDS * safe_pcent) + 1)
+            for _ in range(int(Plan.MIN_EXISTING_RECORDS * safe_pcent) + 1)
         ]
 
         with self.assertRaises(UnsafePlan) as ctx:

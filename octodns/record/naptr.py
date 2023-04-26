@@ -63,10 +63,11 @@ class NaptrValue(EqualityTupleMixin, dict):
                 reasons.append('missing flags')
 
             # TODO: validate these... they're non-trivial
-            for k in ('service', 'regexp', 'replacement'):
-                if k not in value:
-                    reasons.append(f'missing {k}')
-
+            reasons.extend(
+                f'missing {k}'
+                for k in ('service', 'regexp', 'replacement')
+                if k not in value
+            )
         return reasons
 
     @classmethod
