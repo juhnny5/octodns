@@ -41,9 +41,7 @@ class UrlfwdValue(EqualityTupleMixin, dict):
                 reasons.append('missing query')
             except ValueError:
                 reasons.append(f'invalid query setting "{value["query"]}"')
-            for k in ('path', 'target'):
-                if k not in value:
-                    reasons.append(f'missing {k}')
+            reasons.extend(f'missing {k}' for k in ('path', 'target') if k not in value)
         return reasons
 
     @classmethod

@@ -9,7 +9,7 @@ from ..idna import idna_encode
 
 class _TargetValue(str):
     @classmethod
-    def parse_rdata_text(self, value):
+    def parse_rdata_text(cls, value):
         return value
 
     @classmethod
@@ -29,9 +29,7 @@ class _TargetValue(str):
 
     @classmethod
     def process(cls, value):
-        if value:
-            return cls(value)
-        return None
+        return cls(value) if value else None
 
     def __new__(cls, v):
         v = idna_encode(v)

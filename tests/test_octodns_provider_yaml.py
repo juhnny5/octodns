@@ -316,7 +316,7 @@ class TestSplitYamlProvider(TestCase):
 
             # This isn't great, but given the variable nature of the temp dir
             # names, it's necessary.
-            d = list(basename(f) for f in _list_all_yaml_files(directory))
+            d = [basename(f) for f in _list_all_yaml_files(directory)]
             self.assertEqual(len(yaml_files), len(d))
 
     def test_zone_directory(self):

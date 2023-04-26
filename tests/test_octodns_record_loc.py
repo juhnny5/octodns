@@ -114,7 +114,7 @@ class TestRecordLoc(TestCase):
 
     def test_loc_value_rdata_text(self):
         # only the exact correct number of words is allowed
-        for i in tuple(range(0, 12)) + (13,):
+        for i in tuple(range(12)) + (13,):
             s = ''.join(['word'] * i)
             with self.assertRaises(RrParseError):
                 LocValue.parse_rdata_text(s)
@@ -332,8 +332,7 @@ class TestRecordLoc(TestCase):
         self.assertEqual(3, a.precision_vert)
 
         # Hash
-        values = set()
-        values.add(a)
+        values = {a}
         self.assertTrue(a in values)
         self.assertFalse(b in values)
         values.add(b)

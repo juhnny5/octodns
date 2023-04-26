@@ -42,20 +42,11 @@ class _AggregateTarget(object):
             self.SUPPORTS = self.SUPPORTS & target.SUPPORTS
 
     def supports(self, record):
-        for target in self.targets:
-            if not target.supports(record):
-                return False
-        return True
+        return all(target.supports(record) for target in self.targets)
 
     def __getattr__(self, name):
         if name.startswith('SUPPORTS_'):
-            # special case to handle any current or future SUPPORTS_* by
-            # returning whether all providers support the requested
-            # functionality.
-            for target in self.targets:
-                if not getattr(target, name):
-                    return False
-            return True
+            return all(getattr(target, name) for target in self.targets)
         klass = self.__class__.__name__
         raise AttributeError(f'{klass} object has no attribute {name}')
 
@@ -153,7 +144,7 @@ class Manager(object):
 
     def _config_zones(self, zones):
         # record the set of configured zones we have as they are
-        configured_zones = set([z.lower() for z in zones.keys()])
+        configured_zones = {z.lower() for z in zones.keys()}
         # walk the configured zones
         for name in configured_zones:
             if 'xn--' not in name:
@@ -214,9 +205,7 @@ class Manager(object):
                 )
             except TypeError:
                 self.log.exception('Invalid provider config')
-                raise ManagerException(
-                    'Incorrect provider config for ' + provider_name
-                )
+                raise ManagerException(f'Incorrect provider config for {provider_name}')
 
         return providers
 
@@ -242,9 +231,7 @@ class Manager(object):
                 )
             except TypeError:
                 self.log.exception('Invalid processor config')
-                raise ManagerException(
-                    'Incorrect processor config for ' + processor_name
-                )
+                raise ManagerException(f'Incorrect processor config for {processor_name}')
         return processors
 
     def _config_plan_outputs(self, plan_outputs_config):
@@ -275,9 +262,7 @@ class Manager(object):
                     )
             except TypeError:
                 self.log.exception('Invalid plan_output config')
-                raise ManagerException(
-                    'Incorrect plan_output config for ' + plan_output_name
-                )
+                raise ManagerException(f'Incorrect plan_output config for {plan_output_name}')
         return plan_outputs
 
     def _try_version(self, module_name, module=None, version=None):
@@ -378,14 +363,11 @@ class Manager(object):
                 zone = zones.pop()
                 dotted = f'.{zone}'
                 trimmer = len(dotted)
-                subs = set()
-                # look at all the zone names that come after it
-                for candidate in zones:
-                    # If they end with this zone's dotted name, it's a sub
-                    if candidate.endswith(dotted):
-                        # We want subs to exclude the zone portion
-                        subs.add(candidate[:-trimmer])
-
+                subs = {
+                    candidate[:-trimmer]
+                    for candidate in zones
+                    if candidate.endswith(dotted)
+                }
                 configured_sub_zones[zone] = subs
 
             self._configured_sub_zones = configured_sub_zones
@@ -628,9 +610,7 @@ class Manager(object):
         for future in futures:
             ps, d = future.result()
             desired[d.name] = d
-            for plan in ps:
-                plans.append(plan)
-
+            plans.extend(iter(ps))
         # Populate aliases zones.
         futures = []
         for zone_name, zone_source in aliased_zones.items():
@@ -815,8 +795,7 @@ class Manager(object):
             decoded_zone_name = idna_decode(zone_name)
             zone = self.get_zone(zone_name)
 
-            source_zone = config.get('alias')
-            if source_zone:
+            if source_zone := config.get('alias'):
                 if source_zone not in self.config['zones']:
                     self.log.exception('Invalid alias zone')
                     raise ManagerException(
@@ -855,9 +834,7 @@ class Manager(object):
                     collected.append(self.providers[source])
                 sources = collected
             except KeyError:
-                raise ManagerException(
-                    f'Zone {decoded_zone_name}, unknown source: ' + source
-                )
+                raise ManagerException(f'Zone {decoded_zone_name}, unknown source: {source}')
 
             for source in sources:
                 if isinstance(source, YamlProvider):
@@ -876,7 +853,7 @@ class Manager(object):
                 )
 
     def get_zone(self, zone_name):
-        if not zone_name[-1] == '.':
+        if zone_name[-1] != '.':
             raise ManagerException(
                 f'Invalid zone name {idna_decode(zone_name)}, missing ending dot'
             )

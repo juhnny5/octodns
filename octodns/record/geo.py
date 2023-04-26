@@ -160,16 +160,13 @@ class _GeoMixin(ValuesMixin):
     def _data(self):
         ret = super()._data()
         if self.geo:
-            geo = {}
-            for code, value in self.geo.items():
-                geo[code] = value.values
+            geo = {code: value.values for code, value in self.geo.items()}
             ret['geo'] = geo
         return ret
 
     def changes(self, other, target):
-        if target.SUPPORTS_GEO:
-            if self.geo != other.geo:
-                return Update(self, other)
+        if target.SUPPORTS_GEO and self.geo != other.geo:
+            return Update(self, other)
         return super().changes(other, target)
 
     def __repr__(self):

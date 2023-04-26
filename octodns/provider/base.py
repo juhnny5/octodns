@@ -64,9 +64,11 @@ class BaseProvider(BaseSource):
                     # drop unsupported up flag
                     unsupported_pools = []
                     for _id, pool in record.dynamic.pools.items():
-                        for value in pool.data['values']:
-                            if value['status'] != 'obey':
-                                unsupported_pools.append(_id)
+                        unsupported_pools.extend(
+                            _id
+                            for value in pool.data['values']
+                            if value['status'] != 'obey'
+                        )
                     if not unsupported_pools:
                         continue
                     unsupported_pools = ','.join(unsupported_pools)
@@ -80,14 +82,13 @@ class BaseProvider(BaseSource):
                     for pool in record.dynamic.pools.values():
                         for value in pool.data['values']:
                             value['status'] = 'obey'
-                    desired.add_record(record, replace=True)
                 else:
                     msg = f'dynamic records not supported for {record.fqdn}'
                     fallback = 'falling back to simple record'
                     self.supports_warn_or_except(msg, fallback)
                     record = record.copy()
                     record.dynamic = None
-                    desired.add_record(record, replace=True)
+                desired.add_record(record, replace=True)
             elif (
                 record._type == 'PTR'
                 and len(record.values) > 1
@@ -109,13 +110,11 @@ class BaseProvider(BaseSource):
                     'is configured for %s',
                     desired.decoded_name,
                 )
-        else:
-            if record:
-                # we can't manage root NS records, get rid of it
-                msg = f'root NS record not supported for {record.fqdn}'
-                fallback = 'ignoring it'
-                self.supports_warn_or_except(msg, fallback)
-                desired.remove_record(record)
+        elif record:
+            # we can't manage root NS records, get rid of it
+            msg = f'root NS record not supported for {record.fqdn}'
+            self.supports_warn_or_except(msg, 'ignoring it')
+            desired.remove_record(record)
 
         return desired
 
@@ -205,11 +204,9 @@ class BaseProvider(BaseSource):
         if before != after:
             self.log.info('plan:   filtered out %s changes', before - after)
 
-        # allow the provider to add extra changes it needs
-        extra = self._extra_changes(
+        if extra := self._extra_changes(
             existing=existing, desired=desired, changes=changes
-        )
-        if extra:
+        ):
             self.log.info(
                 'plan:   extra changes\n  %s',
                 '\n  '.join([str(c) for c in extra]),

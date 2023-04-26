@@ -67,6 +67,5 @@ def safe_dump(data, fh, **options):
         'default_style': '',
         'default_flow_style': False,
         'explicit_start': True,
-    }
-    kwargs.update(options)
+    } | options
     dump(data, fh, SortingDumper, **kwargs)

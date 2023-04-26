@@ -46,9 +46,7 @@ class _DynamicPool(object):
         return self.data
 
     def __eq__(self, other):
-        if not isinstance(other, _DynamicPool):
-            return False
-        return self.data == other.data
+        return self.data == other.data if isinstance(other, _DynamicPool) else False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -75,9 +73,7 @@ class _DynamicRule(object):
         return self.data
 
     def __eq__(self, other):
-        if not isinstance(other, _DynamicRule):
-            return False
-        return self.data == other.data
+        return self.data == other.data if isinstance(other, _DynamicRule) else False
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -92,19 +88,16 @@ class _Dynamic(object):
         self.rules = rules
 
     def _data(self):
-        pools = {}
-        for _id, pool in self.pools.items():
-            pools[_id] = pool._data()
-        rules = []
-        for rule in self.rules:
-            rules.append(rule._data())
+        pools = {_id: pool._data() for _id, pool in self.pools.items()}
+        rules = [rule._data() for rule in self.rules]
         return {'pools': pools, 'rules': rules}
 
     def __eq__(self, other):
-        if not isinstance(other, _Dynamic):
-            return False
-        ret = self.pools == other.pools and self.rules == other.rules
-        return ret
+        return (
+            self.pools == other.pools and self.rules == other.rules
+            if isinstance(other, _Dynamic)
+            else False
+        )
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -215,14 +208,14 @@ class _DynamicMixin(object):
         reasons = []
         pools_seen = set()
 
-        geos_seen = {}
-
         if not isinstance(rules, (list, tuple)):
             reasons.append('rules must be a list')
         elif not rules:
             reasons.append('missing rules')
         else:
             seen_default = False
+
+            geos_seen = {}
 
             for i, rule in enumerate(rules):
                 rule_num = i + 1
@@ -314,8 +307,7 @@ class _DynamicMixin(object):
         rule_reasons, pools_seen = cls._validate_rules(pools, rules)
         reasons.extend(rule_reasons)
 
-        unused = pools_exist - pools_seen - pools_seen_as_fallback
-        if unused:
+        if unused := pools_exist - pools_seen - pools_seen_as_fallback:
             unused = '", "'.join(sorted(unused))
             reasons.append(f'unused pools: "{unused}"')
 
@@ -344,10 +336,7 @@ class _DynamicMixin(object):
         except:
             rules = []
 
-        parsed = []
-        for i, rule in enumerate(rules):
-            parsed.append(_DynamicRule(i, rule))
-
+        parsed = [_DynamicRule(i, rule) for i, rule in enumerate(rules)]
         # dynamic
         self.dynamic = _Dynamic(pools, parsed)
 
@@ -358,9 +347,8 @@ class _DynamicMixin(object):
         return ret
 
     def changes(self, other, target):
-        if target.SUPPORTS_DYNAMIC:
-            if self.dynamic != other.dynamic:
-                return Update(self, other)
+        if target.SUPPORTS_DYNAMIC and self.dynamic != other.dynamic:
+            return Update(self, other)
         return super().changes(other, target)
 
     def __repr__(self):

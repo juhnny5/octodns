@@ -68,7 +68,7 @@ class SpfDnsLookupProcessor(BaseProcessor):
         spf = [value for value in values if value.startswith('v=spf1 ')]
 
         # No SPF values in the TXT record
-        if len(spf) == 0:
+        if not spf:
             return None
 
         # More than one SPF value resolves as "permerror", https://datatracker.ietf.org/doc/html/rfc7208#section-4.5

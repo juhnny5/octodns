@@ -163,8 +163,7 @@ class YamlProvider(BaseProvider):
 
     def _populate_from_file(self, filename, zone, lenient):
         with open(filename, 'r') as fh:
-            yaml_data = safe_load(fh, enforce_order=self.enforce_order)
-            if yaml_data:
+            if yaml_data := safe_load(fh, enforce_order=self.enforce_order):
                 for name, data in yaml_data.items():
                     if not isinstance(data, list):
                         data = [data]
@@ -252,7 +251,7 @@ class YamlProvider(BaseProvider):
             data[record.decoded_name].append(d)
 
         # Flatten single element lists
-        for k in data.keys():
+        for k in data:
             if len(data[k]) == 1:
                 data[k] = data[k][0]
 
@@ -353,7 +352,7 @@ class SplitYamlProvider(YamlProvider):
         if not isdir(zone_dir):
             makedirs(zone_dir)
 
-        catchall = dict()
+        catchall = {}
         for record, config in data.items():
             if record in self.CATCHALL_RECORD_NAMES:
                 catchall[record] = config

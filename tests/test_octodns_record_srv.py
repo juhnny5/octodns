@@ -202,8 +202,7 @@ class TestRecordSrv(TestCase):
         self.assertTrue(c <= c)
 
         # Hash
-        values = set()
-        values.add(a)
+        values = {a}
         self.assertTrue(a in values)
         self.assertFalse(b in values)
         values.add(b)

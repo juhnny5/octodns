@@ -68,8 +68,7 @@ class TestRecordA(TestCase):
         self.assertEqual(other, update.new)
 
         # Hashing
-        records = set()
-        records.add(a)
+        records = {a}
         self.assertTrue(a in records)
         self.assertFalse(b in records)
         records.add(b)

@@ -229,7 +229,6 @@ class PlanMarkdown(_PlanOutput):
                     fh.write(' | | | | |\n')
 
                 for change in plan.changes:
-                    existing = change.existing
                     new = change.new
                     record = change.record
                     fh.write('| ')
@@ -239,8 +238,7 @@ class PlanMarkdown(_PlanOutput):
                     fh.write(' | ')
                     fh.write(record._type)
                     fh.write(' | ')
-                    # TTL
-                    if existing:
+                    if existing := change.existing:
                         fh.write(str(existing.ttl))
                         fh.write(' | ')
                         fh.write(_value_stringifier(existing, '; '))
@@ -297,7 +295,6 @@ class PlanHtml(_PlanOutput):
                     fh.write('</td>\n  </tr>\n')
 
                 for change in plan.changes:
-                    existing = change.existing
                     new = change.new
                     record = change.record
                     fh.write('  <tr>\n    <td>')
@@ -307,8 +304,7 @@ class PlanHtml(_PlanOutput):
                     fh.write('</td>\n    <td>')
                     fh.write(record._type)
                     fh.write('</td>\n')
-                    # TTL
-                    if existing:
+                    if existing := change.existing:
                         fh.write('    <td>')
                         fh.write(str(existing.ttl))
                         fh.write('</td>\n    <td>')

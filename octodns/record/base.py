@@ -20,8 +20,7 @@ class Record(EqualityTupleMixin):
     def register_type(cls, _class, _type=None):
         if _type is None:
             _type = _class._type
-        existing = cls._CLASSES.get(_type)
-        if existing:
+        if existing := cls._CLASSES.get(_type):
             module = existing.__module__
             name = existing.__name__
             msg = f'Type "{_type}" already registered by {module}.{name}'
@@ -150,9 +149,7 @@ class Record(EqualityTupleMixin):
     def fqdn(self):
         # TODO: these should be calculated and set in __init__ rather than on
         # each use
-        if self.name:
-            return f'{self.name}.{self.zone.name}'
-        return self.zone.name
+        return f'{self.name}.{self.zone.name}' if self.name else self.zone.name
 
     @property
     def decoded_fqdn(self):
@@ -276,8 +273,7 @@ class ValuesMixin(object):
             elif len(values) == 1:
                 ret['value'] = values[0]
         elif len(self.values) == 1:
-            v = self.values[0]
-            if v:
+            if v := self.values[0]:
                 ret['value'] = getattr(v, 'data', v)
 
         return ret
